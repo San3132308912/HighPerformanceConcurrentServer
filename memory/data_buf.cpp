@@ -10,16 +10,19 @@ BufferBase::BufferBase()
 {
 }
 
+//清空并回收chuck
 BufferBase::~BufferBase()
 {
     clear();
 }
 
+//返回chuck中存储的字符长度
 const int BufferBase::length() const 
 {
     return data_buf != nullptr ? data_buf->length : 0;
 }
 
+//从chuck中删除len个字符，如果删除后chuck中没有字符，回收chuck
 void BufferBase::pop(int len) 
 {
     assert(data_buf != nullptr && len <= data_buf->length);
@@ -31,6 +34,7 @@ void BufferBase::pop(int len)
     }
 }
 
+//回收chuck
 void BufferBase::clear()
 {
     if (data_buf != nullptr)  {
@@ -39,7 +43,7 @@ void BufferBase::clear()
     }
 }
 
-
+//从fd对应的文件中读取数据，返回读取的字符的个数
 int InputBuffer::read_from_fd(int fd)
 {
     int need_read;
@@ -69,7 +73,7 @@ int InputBuffer::read_from_fd(int fd)
             data_buf = new_buf;
         }
     }
-
+    //开始读数据
     int already_read = 0;
     do { 
         if(need_read == 0) {
@@ -88,11 +92,13 @@ int InputBuffer::read_from_fd(int fd)
     return already_read;
 }
 
+//返回data_buf中的数据
 const char *InputBuffer::get_from_buf() const 
 {
     return data_buf != nullptr ? data_buf->data + data_buf->head : nullptr;
 }
 
+//调整data_buffer
 void InputBuffer::adjust()
 {
     if (data_buf != nullptr) {
@@ -100,7 +106,7 @@ void InputBuffer::adjust()
     }
 }
 
-
+//写data_buf
 int OutputBuffer::write2buf(const char *data, int len)
 {
     if (data_buf == nullptr) {
@@ -130,6 +136,7 @@ int OutputBuffer::write2buf(const char *data, int len)
     return 0;
 }
 
+//写fd
 int OutputBuffer::write2fd(int fd)
 {
     assert(data_buf != nullptr && data_buf->head == 0);
@@ -144,7 +151,7 @@ int OutputBuffer::write2fd(int fd)
         data_buf->pop(already_write);
         data_buf->adjust();
     }
-
+    //如果没有写完，则说明此时写fd没有完成
     if (already_write == -1 && errno == EAGAIN) {
         already_write = 0;
     }
